@@ -24,3 +24,17 @@
 > 4. search 用户
 > 5. save 用户至自定义文件
 > 6. load 加载文件并读取里面的用户信息
+
+## lock
+
+基础的多线程编程，分别尝试使用了
+
+> 互斥锁 mutex
+>
+> 自旋锁 spinlock
+>
+> 原子操作 \__asm__ volatile()
+>
+> gcc -o lock lock.c -lpthread
+>
+> ./lock
