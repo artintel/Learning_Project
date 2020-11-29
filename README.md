@@ -48,3 +48,23 @@
 消化好本项目过程中接口之间的传递，线程之间的转换过程的写法和原理。
 
 了解好 gdb 调试，学会如何使用 gdb
+
+> gcc -o pthreadpool pthreadpool.c -lpthread -g
+>
+> ./pthreadpool
+>
+> `gdb 调试`
+>
+> ```powershell
+>gcc -o pthreadpool pthreadpool.c -lpthread -g
+> 
+>gdb ./pthreadpool
+> 
+>b xxx(行) (breakpoint)
+> 
+>b 124
+> 
+>r (runing)
+> 
+>c (continue)
+> ```
