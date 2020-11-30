@@ -11,3 +11,7 @@ USE MYC_DB; # 使用数据库
 -- );
 
 SHOW TABLES; # 显示table
+
+SELECT * FROM TBL_USER;
+
+INSERT TBL_USER(U_NAME, U_GENGDER) VALUES('Mayc', 'man');

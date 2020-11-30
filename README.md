@@ -76,3 +76,19 @@
 > 使用数据库
 >
 > 创建表格
+
+`gcc -o Mysql Mysql.c -I /user/include/mysql/ -lmysqlclient`  `-I 系统头文件  -lmysqlclient: 引入我们编译中使用的库`
+
+```
+#include <mysql.h>
+可能找不到
+如果确实存在 /user/include/mysql/mysql.h
+就改成
+#include <mysql/mysql.h>
+
+如果在上面的目录没有找到mysql.h文件，需要安装mysql-devel但是注意在ubuntu下安装mysql-devel命令：sudo apt-get install libmysqld-dev
+
+如果你不想将#include<mysql.h>改成#include <mysql/mysql>的话，而且你是用的gcc编译的话，那么可以这样
+gcc -I/user/include/mysql
+```
+
