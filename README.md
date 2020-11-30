@@ -90,5 +90,25 @@
 
 如果你不想将#include<mysql.h>改成#include <mysql/mysql>的话，而且你是用的gcc编译的话，那么可以这样
 gcc -I/user/include/mysql
+
+# DELETE FROM TBL_USER WHERE U_NAME='Mayc'; # 提醒不安全，因为可能会同时有多条数据被删除
+
+
+
+-- SET SQL_SAFE_UPDATES=0; # 设置成安全模式, 三条语句同时做
+-- DELETE FROM TBL_USER WHERE U_NAME='Mayc';
+-- SET SQL_SAFE_UPDATES=1;
+sql -->
+# 更好的方式
+
+DELIMITER $$
+CREATE PROCEDURE PROC_DELETE_USER(IN UNAME VARCHAR(32))
+BEGIN
+SET SQL_SAFE_UPDATES=0; # 设置成安全模式, 三条语句同时做
+DELETE FROM TBL_USER WHERE U_NAME=UNAME;
+SET SQL_SAFE_UPDATES=1;
+END$$
+
+CALL PROC_DELETE_USER('qiuxiang')
 ```
 
