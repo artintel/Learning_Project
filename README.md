@@ -112,3 +112,4 @@ END$$
 CALL PROC_DELETE_USER('qiuxiang')
 ```
 
+>  作业题：实现 mysql 数据库的连接池
