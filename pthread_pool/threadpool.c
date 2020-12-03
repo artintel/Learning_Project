@@ -72,7 +72,9 @@ static void* nThreadPoolCallback(void* arg){
 		LIST_REMOVE(task, worker->manager->tasks);
 		pthread_mutex_unlock(&worker->manager->mutex);
 
+		printf("one\n");
 		task->task_func(task);
+		printf("two\n");
 	}
 	printf("free\n");
 	free(worker);
@@ -149,7 +151,7 @@ int nThreadPoolPushTask(ThreadPool* pool, struct nTask* task){
 #if 1
 
 #define THREADPOOL_INIT_COUNT 20
-#define TASK_INIT_SIZE 10
+#define TASK_INIT_SIZE 20
 
 void task_entry(struct nTask* task){
 	//struct nTask* task = (struct nTask*) task;
@@ -185,8 +187,8 @@ int main(void){
 
 		nThreadPoolPushTask(&pool, task);
 	}
-	nThreadPoolDestory(&pool, THREADPOOL_INIT_COUNT);
 	getchar();
+	nThreadPoolDestory(&pool, THREADPOOL_INIT_COUNT);
 }
 #endif
 
