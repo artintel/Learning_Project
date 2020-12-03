@@ -74,6 +74,7 @@ static void* nThreadPoolCallback(void* arg){
 
 		task->task_func(task);
 	}
+	printf("free\n");
 	free(worker);
 }
 
@@ -117,7 +118,7 @@ int nThreadPoolCreate(ThreadPool* pool, int numWorkers){
 int nThreadPoolDestory(ThreadPool* pool, int nWorker){
 	struct nWorker* worker = nullptr;
 	for(worker = pool->workers; worker != nullptr; worker = worker->next){
-		worker->terminate;
+		worker->terminate = 1;
 		printf("terminate: %d\n", worker->terminate);
 	}
 
@@ -184,7 +185,7 @@ int main(void){
 
 		nThreadPoolPushTask(&pool, task);
 	}
-	//printf("for loop behind\n");
+	nThreadPoolDestory(&pool, THREADPOOL_INIT_COUNT);
 	getchar();
 }
 #endif
