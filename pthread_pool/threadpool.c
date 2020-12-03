@@ -118,6 +118,7 @@ int nThreadPoolDestory(ThreadPool* pool, int nWorker){
 	struct nWorker* worker = nullptr;
 	for(worker = pool->workers; worker != nullptr; worker = worker->next){
 		worker->terminate;
+		printf("terminate: %d\n", worker->terminate);
 	}
 
 	pthread_mutex_lock(&pool->mutex);
@@ -147,7 +148,7 @@ int nThreadPoolPushTask(ThreadPool* pool, struct nTask* task){
 #if 1
 
 #define THREADPOOL_INIT_COUNT 20
-#define TASK_INIT_SIZE 10000
+#define TASK_INIT_SIZE 10
 
 void task_entry(struct nTask* task){
 	//struct nTask* task = (struct nTask*) task;
@@ -157,6 +158,9 @@ void task_entry(struct nTask* task){
 	free(task->user_data);
 	free(task);
 }
+
+
+
 
 int main(void){
 	ThreadPool pool = { 0 };
