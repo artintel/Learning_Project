@@ -1,3 +1,11 @@
+/*
+ * @Author: Mayc
+ * @Date: 2020-11-26 16:41:01
+ * @LastEditTime: 2020-12-04 15:30:11
+ * @FilePath: \VSC++&GO\ProjectLearning\Lock\lock.c
+ * @这是一个漂亮的注释头
+ */
+
 #include <stdio.h>
 #include <pthread.h>
 #include <unistd.h>

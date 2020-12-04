@@ -1,3 +1,11 @@
+/*
+ * @Author: Mayc
+ * @Date: 2020-11-29 18:42:52
+ * @LastEditTime: 2020-12-04 15:30:34
+ * @FilePath: \VSC++&GO\ProjectLearning\pthread_pool\threadpool.c
+ * @这是一个漂亮的注释头
+ */
+
 #include <stdio.h>
 #include <pthread.h>
 #include <string.h>

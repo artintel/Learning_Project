@@ -1,3 +1,11 @@
+/*
+ * @Author: Mayc
+ * @Date: 2020-12-04 14:38:01
+ * @LastEditTime: 2020-12-04 15:28:53
+ * @FilePath: \testd:\VSC++&GO\ProjectLearning\mysql_pool\Mysql_pool.c
+ * @这是一个漂亮的注释头
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <mysql/mysql.h>
