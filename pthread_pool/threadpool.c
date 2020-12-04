@@ -72,9 +72,7 @@ static void* nThreadPoolCallback(void* arg){
 		LIST_REMOVE(task, worker->manager->tasks);
 		pthread_mutex_unlock(&worker->manager->mutex);
 
-		printf("one\n");
 		task->task_func(task);
-		printf("two\n");
 	}
 	printf("free\n");
 	free(worker);
