@@ -125,3 +125,126 @@ CALL PROC_DELETE_USER('qiuxiang')
 > - 创建定量的数据库连接 --- 并且用链表连接管理，配合`管理员`结构体
 > - 配合多线程进行并发处理，要注意临界资源的锁控制。
 > - 将之前的 `mysql `的一些操作函数封装在 `struct tast` 结构体中，并作为任务分配给每一个数据库连接, 每有一个新的 `task` 需要唤醒一个数据库连接(等同于唤醒一个线程)，或者说是从数据库连接池中取出一个空闲的连接。完成 `task` 之后要释放，也就是将一个数据库连接回收到连接池
+
+
+
+![image-20201205160356724](C:\Users\HS\AppData\Roaming\Typora\typora-user-images\image-20201205160356724.png)
+
+# DNS-UDP
+
+## Queries
+
+**查询名：**长度不固定，且不使用填充字节，一般该字段表示的就是需要查询的域名(如果是反向查询，则为IP，反向查询即由IP地址反查域名)，一般的格式如下图所示
+
+![image-20201205160814992](C:\Users\HS\AppData\Roaming\Typora\typora-user-images\image-20201205160814992.png)
+
+0voice.com;  **name:**60voice3com
+
+www.0voice.com; **name:**3www60voice3com
+
+
+
+在网络中，就是将 `dns_head` 和 `dns_question` 两个结构体内的信息发送给dns服务器
+
+![image-20201205163059197](C:\Users\HS\AppData\Roaming\Typora\typora-user-images\image-20201205163059197.png)
+
+在C/C++写网络程序的时候，往往会遇到字节的网络l顺序和主机顺序的问题。这是就可能用到htonl(), ntohl(), ntohs()，htons()这4个函数。
+网络字节顺序与本地字节顺序之间的转换函数：
+
+htonl()--"Host to Network Long"
+ntohl()--"Network to Host Long"
+htons()--"Host to Network Short"
+ntohs()--"Network to Host Short"
+
+
+
+## function()
+
+字符串切分 `strtok(string, delim)` -- `strtok(www.0voice.com, ".")；` 
+
+- string -- 需要切分的字符串， 
+- delim -- 规则
+
+在后续接着切分的时候变成 `strtok(nullptr, delim)`, 由此可发现，该函数是一个线程非安全函数
+
+`strncpy(qname, token, len + 1)` 
+
+和 `strcpy()` 不同，`strncpy()` 需要指定长度
+
+
+
+## sendto() 发送
+
+### dns_client_commit(const char* domain)
+
+dns客户端比较固定的写法
+
+```C
+int dns_client_commit(const char* domain){
+	
+	int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+	if(sockfd < 0) return -1;
+
+	struct sockaddr_in servaddr = { 0 };
+	servaddr.sin_family = AF_INET;
+	servaddr.sin_port = htons(DNS_SERVER_PORT);
+	servaddr.sin_addr._addr = inet_addr(DNS_SERVER_IP);
+
+
+	struct dns_header header = { 0 };
+	dns_create_header(&header);
+	
+	struct dns_question question = { 0 };
+	dns_create_question(question, domain);
+
+
+	char request[1024] = { 0 };
+	int length = dns_build_requestion(&header, question, request);
+
+	//request
+	sendto(fd, request, length, 0, servaddr, addr_len);
+	
+}
+```
+
+### dns_build_requestion(struct dns_header* header, struct dns_question* question, char* request, int rlen)
+
+将header和question的数据打包并返回包长度
+
+```C
+int dns_build_requestion(struct dns_header* header, struct dns_question* question, char* request, int rlen){
+
+	if(header == nullptr || dns_question == nullptr || request == nullptr) return -1;
+	memset(request, 0, rlen);
+	// header --> request
+
+	memcpy(request, header, sizeof(struct dns_header));
+	int offset = sizeof(struct dns_header);
+	
+
+	
+	// question --> request
+	memcpy(request+offset, question->qname, question->length);
+	offset += question->length;
+
+	memcpy(requestion+offset, question->qtype, sizeof(question->qtype));
+	offset += sizeof(question->qtype);
+
+	memcpy(requestion+offset, question->qclass, sizeof(question->qclass));
+	offset += sizeof(question->qclass);
+	
+	return offset;
+	
+}
+```
+
+## recvfrom() 接收
+
+`send()` 和 `recvfrom()` 是一个流程的操作，属于同步操作，在recvfrom()和sendto()之间自动加锁，完成接收才结束
+
+
+
+## UDP和TCP相比，TCP不具备的
+
+1. UDP传输速度快 (下载)
+2. UDP相应速度快 (游戏)
