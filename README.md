@@ -128,25 +128,27 @@ CALL PROC_DELETE_USER('qiuxiang')
 
 
 
-![image-20201205160356724](C:\Users\HS\AppData\Roaming\Typora\typora-user-images\image-20201205160356724.png)
-
 # DNS-UDP
+
+![1](https://github.com/artintel/Learning_Project/blob/master/dns/1.png)
 
 ## Queries
 
-**查询名：**长度不固定，且不使用填充字节，一般该字段表示的就是需要查询的域名(如果是反向查询，则为IP，反向查询即由IP地址反查域名)，一般的格式如下图所示
+> 查询名：
+>
+> 长度不固定，且不使用填充字节，一般该字段表示的就是需要查询的域名(如果是反向查询，则为IP，反向查询即由IP地址反查域名)，一般的格式如下图所示
 
-![image-20201205160814992](C:\Users\HS\AppData\Roaming\Typora\typora-user-images\image-20201205160814992.png)
+![2](https://github.com/artintel/Learning_Project/blob/master/dns/2.png)
 
-0voice.com;  **name:**60voice3com
+`0voice.com;  name:60voice3com`
 
-www.0voice.com; **name:**3www60voice3com
+`www.0voice.com; name:3www60voice3com`
 
 
 
 在网络中，就是将 `dns_head` 和 `dns_question` 两个结构体内的信息发送给dns服务器
 
-![image-20201205163059197](C:\Users\HS\AppData\Roaming\Typora\typora-user-images\image-20201205163059197.png)
+![3](https://github.com/artintel/Learning_Project/blob/master/dns/3.png)
 
 在C/C++写网络程序的时候，往往会遇到字节的网络l顺序和主机顺序的问题。这是就可能用到htonl(), ntohl(), ntohs()，htons()这4个函数。
 网络字节顺序与本地字节顺序之间的转换函数：
