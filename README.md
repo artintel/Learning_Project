@@ -318,8 +318,7 @@ struct epoll_event {
 `cmd` 是 F_GETLK、F_SETLK 或 F_SETLKW。
 
 ### O_NONBLOCK
-
-### 为文件的本次打开操作和后续的 I/O 操作设置非阻塞方式。 
+为文件的本次打开操作和后续的 I/O 操作设置非阻塞方式。 
 
 
 
