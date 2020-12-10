@@ -326,7 +326,9 @@ struct epoll_event {
 
 
 
-# 客户端请求消息格式
+# http 请求连接
+
+## 客户端请求消息格式
 
 ![image-20201210163839827](https://github.com/artintel/Learning_Project/blob/master/Http/image-20201210163839827.png)
 
@@ -338,17 +340,46 @@ Host: www.example.com
 Accept-Language: en, mi
 ```
 
-# 实现流程
+## 实现流程
 
 1. www.baidu.com --> 翻译为 ip 地址。 DNS
 2. TCP 连接这个 ip 地址： 端口
 3. 发送 http 协议
 
 >  `API -- gethostbyname()`定义：
+>
+> 返回对应于给定主机名的包含主机名字和地址信息的 `hostent` 结构的指定指针。
+>
+> ```C
+> struct hostent{
+>     char *h_name;
+>     char ** h_aliases;
+>     short h_addrtype;
+>     short h_length;
+>     char ** h_addr_list;
+>     
+> }
+> struct hostent* gethostbyname(const char* name){
+>     err_t err;
+>     ip_addr_t addr;
+>     /* buffer variables for lwip_gethostbyname */
+>     HOSTENT_STORAGE struct hostent s_hostent;
+>     HOSTENT_STORAGE char *s_aliases;
+>     HOSTENT_STORAGE ip_addr_t s_hostent_addr;
+>     HOSTENT_STORAGE ip_addr_t *s_phostent_addr[2];
+>     /* query host IP address */
+>     err = netconn_gethostbyname(name, &addr);
+>     if (err != ERR_OK) {
+>         LWIP_DEBUGF(DNS_DEBUG, ("lwip_gethostbyname(%s) failed, err=%d\n", name, err));
+> h_errno = HOST_NOT_FOUND;
+>     }
+>     return NULL;
+> }
+> ```
 
 >  `inet_ntoa()` 将 `unsigned int --> char*`
 
-# 实现TCP连接服务器
+## 实现TCP连接服务器
 
 > `http_create_socket(char* ip)` 创建`socket`用于连接相应的服务器，`ip `来自于 `gethostbyname()`
 >
@@ -358,7 +389,7 @@ Accept-Language: en, mi
 >
 > 设置非阻塞I/O `fcntl(sockfd, F_SETFL, O_NONBLOCK);`
 
-# send http 请求
+## send http 请求
 
 > `int http_send_request(const char* hostname, const char* resource)`
 >
