@@ -1,6 +1,4 @@
-# Learning_Project_Nodes
-
-## count_word
+# count_word
 
 一个统计文本中单词有多少个的小脚本
 
@@ -10,7 +8,7 @@
 
 `./count a.txt`
 
-## contacts
+# contacts
 
 通讯录功能。
 
@@ -25,7 +23,7 @@
 > 5. save 用户至自定义文件
 > 6. load 加载文件并读取里面的用户信息
 
-## lock
+# lock
 
 基础的多线程编程，分别尝试使用了
 
@@ -39,7 +37,7 @@
 >
 > ./lock
 
-## pthread_pool
+# pthread_pool
 
 线程池的创建
 
@@ -69,7 +67,7 @@
 >c (continue)
 > ```
 
-## MySQL
+# MySQL
 
 > 创建数据库
 >
@@ -112,7 +110,7 @@ END$$
 CALL PROC_DELETE_USER('qiuxiang')
 ```
 
-### 作业题：实现 mysql 数据库的连接池
+## 作业题：实现 mysql 数据库的连接池
 
 > 主要的思路还是根据之前的pthread_pool来进行改写。
 >
@@ -157,8 +155,6 @@ htonl()--"Host to Network Long"
 ntohl()--"Network to Host Long"
 htons()--"Host to Network Short"
 ntohs()--"Network to Host Short"
-
-
 
 ## function()
 
@@ -319,6 +315,73 @@ struct epoll_event {
 
 ### O_NONBLOCK
 为文件的本次打开操作和后续的 I/O 操作设置非阻塞方式。 
+
+
+
+和百度的服务器连接
+
+1. 建立TCP连接
+2. 在TCP连接，socket的基础上，向百度服务器发送http协议请求
+3. 服务器在TCP连接socket，返回http协议 -- response
+
+
+
+# 客户端请求消息格式
+
+![image-20201210163839827](C:\Users\HS\AppData\Roaming\Typora\typora-user-images\image-20201210163839827.png)
+
+```bash
+GET /hello.txt HTTP/1.1
+User-Agent: curl/7.16.3 libcurl/7.16.3
+OpenSSL/0.9.1l zlib/1.2.3
+Host: www.example.com
+Accept-Language: en, mi
+```
+
+# 实现流程
+
+1. www.baidu.com --> 翻译为 ip 地址。 DNS
+2. TCP 连接这个 ip 地址： 端口
+3. 发送 http 协议
+
+>  `API -- gethostbyname()`定义：
+
+>  `inet_ntoa()` 将 `unsigned int --> char*`
+
+# 实现TCP连接服务器
+
+> `http_create_socket(char* ip)` 创建`socket`用于连接相应的服务器，`ip `来自于 `gethostbyname()`
+>
+> 创建`socket` 和 `sockadd_in` 结构体
+>
+> 连接 connect(sockfd, (struct sockaddr*)&sin, sizeof(struct sockaddr_in))
+>
+> 设置非阻塞I/O `fcntl(sockfd, F_SETFL, O_NONBLOCK);`
+
+# send http 请求
+
+> `int http_send_request(const char* hostname, const char* resource)`
+>
+> hostname: github.com
+> resource: /artintel
+>
+> 1. 通过函数获取ip地址 `host_to_ip(const char* hostname);`
+>
+> 2. 建立连接 `http_create_socket()`
+>
+> 3. 发送 `socket` `send(sockfd, buffer, strlen(buffer), 0);`
+>
+> 4. 接收 `response`
+>
+>    `select` 检测，监听， 网络 `io` 里是否有可读的数据
+>
+>    `select(maxfd + 1, &rset, &wset, &eset, NULL);`
+>
+>    - `maxfd:` 可监听的最大 `sockfd` 数量
+>    - `rset:` 哪些 I/O 可读
+>    - `wset:` 哪些 I/O 可写
+>    - `eset:` 哪些 I/O 出错
+>    - `NULL:` 多长时间轮询一次
 
 
 
