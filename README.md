@@ -328,7 +328,7 @@ struct epoll_event {
 
 # 客户端请求消息格式
 
-![image-20201210163839827](C:\Users\HS\AppData\Roaming\Typora\typora-user-images\image-20201210163839827.png)
+![image-20201210163839827](https://github.com/artintel/Learning_Project/blob/master/Http/image-20201210163839827.png)
 
 ```bash
 GET /hello.txt HTTP/1.1
