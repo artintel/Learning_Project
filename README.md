@@ -414,5 +414,10 @@ Accept-Language: en, mi
 >    - `eset:` 哪些 I/O 出错
 >    - `NULL:` 多长时间轮询一次
 
+```bash
+$ gcc -o http_request http_request.c -lpthread
+$ ./http_request www.baidu.com /
+```
+
 
 
