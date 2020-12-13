@@ -810,6 +810,8 @@ socket的发送缓冲区状态变化时触发写事件，即满的缓冲区刚�
    
 
    **tcp_rmem() 同理 tcp_wmem()**
+   
+   `/etc/sysctl.conf` 是一个允许你改变正在运行中的 Linux系统的接口。它包含一些 `TCP/IP` 堆栈和虚拟内存系统的高级选项，可用来控制 Linux 网络配置，由于 `/proc/sys/net` 目录内容的临时性，建议把`TCP/IP` 参数的修改添加到 `/etc/sysctl.conf` 文件, 然后保存文件，使用命令 `sudo sysctl –p` 使之立即生效。
 
 
 
