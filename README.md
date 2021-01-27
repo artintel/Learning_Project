@@ -827,3 +827,439 @@ $ gcc -o tcp_client tcp_client.c
 ./tcp_client (ip of server) 8888
 ```
 
+# 设计模式学习笔记
+
+刚开始学习设计模式，写一些自己的浅见留在此处，便于以后自己查询或者更正
+
+设计模式应该是，大佬们通过不断地代码迭代过程总结出的一系列的标准。之前看李建忠李老师的视频时因基础不好(现在仍还不足)仍有很多不理解的地方。但是一直记着一句话，设计模式不是“标准”，不能死学，死套，根据场景的不同，根据情况不同选择不同的设计模式。最高要做到 -- “心中无设计模式”
+
+# 模式设计的原则：
+- 依赖倒置原则
+
+  - 高层模块不应该依赖底层模块，二者都应该依赖抽象
+  - 抽象不应该依赖具体实现，具体实现应该依赖于抽象
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20210124204557215.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+
+- 开放封闭原则
+
+  - 一个类应该对扩展开放，对修改关闭
+
+- 面向接口编程
+
+  - 不将变量类型声明为某个特定的类，而是声明为某个接口
+  - 客户程序无需获知对象的具体类型，只需要知道对象所具有的接口
+  - 减少系统中各部分的依赖关系，从而实现“高内聚、松耦合”的类型设计方案
+
+- 封装变化点
+
+  - 将稳定点和变化点分离，扩展修改变化点；让稳定点与变化点的实现层次分离
+
+- 单一职责原则
+
+  - 一个类应该仅有一个引起它变化的原因
+
+- 里氏替换原则
+
+  - 子类型必须能够替换掉它的父类型；主要出现在子类覆盖父类实现，原来使用父类型的程序可能出现错误；覆盖了父类方法却没有实现父类方法的职责；
+
+- 接口隔离原则
+
+  - 不应该强迫客户依赖于它们不用的方法
+  - 一般用于处理一个类拥有比较多的接口，而这些接口涉及到很多职责
+
+- 对象组合优于类继承
+
+  - 继承耦合度高，组合耦合度低
+
+设计模式的使用，需要我们对当前任务，系统具有相当的熟悉程度时，并且明确发现了可以优化的地方时，我们可以使用设计模式。而这个可以优化的地方包括找到：
+- 系统的关键依赖点
+- 明确的变化点
+- 明确找到复用方向
+- 对需求的变化方向熟悉
+
+如果我们获得对代码重构的权利，我们便应该在重构的过程中找到合适的设计模式，而重构时我们需要注意的便是：
+- 静态转变为动态
+- 早绑定转变为晚绑定
+- 继承转变为组合
+- 编译时依赖转变为运行时依赖
+	```cpp
+	class Base{...}
+	class Son : public Base{...}
+	Base* subject = new Son();
+	```
+- 紧耦合转变为松耦合
+
+以下是对常用设计模式 -- 单例模式的笔记记录和资料查询汇总
+# 单例模式
+- 定义
+	保证一个类仅有一个实例，并提供一个该实例的全局访问点 -- 《设计模式》GOF
+
+## 代码
+此处将通过六个不同的单例模式代码写法来逐步理清单例模式
+- 版本1
+	```cpp
+	class Singleton {
+	public:
+		static Singleton * GetInstance() {
+			if (_instance == nullptr) {
+	 			_instance = new Singleton();
+	 		}
+	 		return _instance;
+	 	}
+	private:
+	 Singleton(){}//构造
+	 Singleton(const Singleton &clone){} //拷⻉构造
+	 Singleton& operator=(const Singleton&) {}
+	 static Singleton * _instance;
+	}
+	Singleton* Singleton::_instance = nullptr;//静态成员需要初始化
+	```
+这是最容易写出来的单例模式代码。我们通过类内静态方法 `GetInstance()` 来达到了一个类仅有一个实例的要求。但该代码可能存在如
+1. 堆区开辟的内存空间并没有被释放的问题
+2. 多线程的线程安全问题
+
+对于第一个问题：
+对于在堆区`new`出的对象，`_instance` 在版本一中，何时释放，由谁来释放并没有得到解决，如果对象没有被释放，在运行期间可能会存在内存泄露问题。
+因此我们可以通过比如 `atexit()` 函数，内部类或者智能指针来解决，由此我们获得版本 2
+- 版本 2
+	`atexit()`
+	```cpp
+	class Singleton {
+	public:
+		static Singleton* GetInstance(){
+			if( _instance == nullptr ){
+				_instance = new Singleton();
+				atexit(Destructor);
+			}
+			return _instance;
+		}
+		~Singleton () {}
+	private:
+		static void Destructor() { // Destructor() 静态是因为 静态成员只能访问静态成员函数
+			if( nullptr != _instance ){
+				delete _instance;
+				_instance = nullptr;
+			}
+		}
+		Singleton();//构造
+		Singleton( const Singleton& cpy );//拷贝构造
+		static Singleton* _instance;
+	}
+	Singleton* Singleton::_instance = nullptr;//静态成员需要初始化；还可以使用内部类，只能指针来解决；
+	```
+	内部类
+	```cpp
+	class Singleton {
+	public:
+		static Singleton* GetInstance(){
+			if( _instance == nullptr ){
+				_instance = new Singleton();
+			}
+			return _instance;
+		}
+		~Singleton () {
+		}
+	private:
+		class AutoRelease {
+		public:
+			~AutoRelease(){
+				if(Singleton::_instance != nullptr){
+					delete Singleton::_instance;
+					Singleton::_instance = nullptr;
+				}
+			}
+		};
+		Singleton(){}//构造
+		Singleton( const Singleton& cpy ){}//拷贝构造
+		static Singleton* _instance;
+		static AutoRelease _auto;
+	}
+	Singleton* Singleton::_instance = nullptr;//静态成员需要初始化；还可以使用内部类，只能指针来解决；
+	Singleton::AutoRelease Singleton::_auto;
+	```
+	这段代码之所以能做到自动内存释放，是因为使用了一个技巧，上面用内部类定义的 `_auto` 是一个静态变量，而静态变量的生成和释放都是操作系统负责调用的，这样在 `_auto` 销毁的时候，会自动进入 `_auto` 的析构函数，即`AutoRelease` 类的析构函数，我们在这个函数里进行释放单例对象的操作，这样就可以做到自动释放了
+
+即便如此，我们依然会有多线程的线程安全问题，即多个线程在 `_instance == nullptr` 这个条件满足的时候一起进入了 `_instance = new Singleton();`，便会出现线程安全问题，那么一般的解决办法便是通过锁来进行操作，如此便有了版本三
+- 版本 3
+	```cpp
+	#include <mutex>
+	class Singleton { // 懒汉模式 lazy load
+	public:
+		static Singleton * GetInstance() {
+	 	//std::lock_guard<std::mutex> lock(_mutex); // 3.1 切换线程
+	 	if (_instance == nullptr) {
+	 		std::lock_guard<std::mutex> lock(_mutex); // 3.2
+	 		if (_instance == nullptr) {
+	 			_instance = new Singleton();
+	 			atexit(Destructor);
+	 		}
+	 	}
+	 return _instance;
+	}
+	private:
+		static void Destructor() {
+	 		if (nullptr != _instance) {
+	 			delete _instance;
+	 			_instance = nullptr;
+	 		}
+	 	}
+		Singleton(){} //构造
+	 	Singleton(const Singleton &cpy){} //拷⻉构造
+	 	static Singleton * _instance;
+	 	static std::mutex _mutex;
+	}
+	Singleton* Singleton::_instance = nullptr;//静态成员需要初始化
+	std::mutex Singleton::_mutex; //互斥锁初始化
+	```
+	在这个版本中，加锁的方法分别有如  3.1 和 3.2, 一般来说不选择 3.1 的原因在于，锁的粒度太大，线程切换的代价过大过于无意义。所以选择 3.2 的方法。
+	而 3.2 方法仍存在一个巨大的隐患：CPU 指令重排。
+	对于 `_instance = new Singleton();` CPU的指令顺序是：
+	1. 分配内存 malloc
+	2. 调用构造器构造函数
+	3. 指针赋值
+
+	单线程环境下，3.2的写法应该是没有问题的，但在多线程环境下，由于CPU命令的重拍特性，很可能会出现 1 3 2 的执行顺序方式，即分配内存，指针复制，调用构造函数。而单例模式下，当某个线程线性进入了 `_instance = new Singleton();` ，而其他函数在这个线程产生了唯一的实例，并解开锁之后，进行 `if(_instance == nullptr)` 并判断为假后退出。结果是没有经历调用构造函数这一个阶段，却获得了内存地址，导致 `_instance` 指向了随机的内存地址，便出现了大家所知道的线程安全问题。由此，便有了版本四，内存屏障
+
+- 版本 4
+	```cpp
+	#include <mutex>
+	#include <atomic>
+	class Singleton { // C++ Java
+	public:
+		static Singleton * GetInstance() {
+	 		Singleton* tmp = _instance.load(std::memory_order_relaxed);
+	 		std::atomic_thread_fence(std::memory_order_acquire);//获取内存屏障
+	 		if (tmp == nullptr) {
+	 			std::lock_guard<std::mutex> lock(_mutex);
+	 			tmp = _instance.load(std::memory_order_relaxed);
+	 			if (tmp == nullptr) {
+	 				tmp = new Singleton;
+	 				std::atomic_thread_fence(std::memory_order_release);//释放内存屏障
+	 				_instance.store(tmp, std::memory_order_relaxed);
+	 				atexit(Destructor);
+	 			}
+	 		}
+	 return tmp;
+	 }
+	private:
+		static void Destructor() {
+	 		Singleton* tmp = _instance.load(std::memory_order_relaxed);
+	 		if (nullptr != tmp) {
+	 			delete tmp;
+	 		}
+	 	}
+		Singleton(){}
+	 	Singleton(const Singleton&) {}
+	 	Singleton& operator=(const Singleton&) {}
+	 	static std::atomic<Singleton*> _instance;
+	 	static std::mutex _mutex;
+	};
+	std::atomic<Singleton*> Singleton::_instance;//静态成员需要初始化
+	std::mutex Singleton::_mutex; //互斥锁初始化
+	// g++ Singleton.cpp -o singleton -std=c++11  
+	```
+	版本 4 的问题，对于我来说，就是过于复杂了，还没学懂。。所以有了版本 5
+
+- 版本 5
+	```cpp
+	// c++11 magic static 特性：如果当变量在初始化的时候，并发同时进⼊声明语句，并发
+	// 线程将会阻塞等待初始化结束。
+	class Singleton
+	{
+	public:
+	 	~Singleton(){}
+	 	static Singleton& GetInstance() {
+	 		static Singleton instance;
+	 		return instance;
+	 	}
+	private: // protected
+	 	Singleton(){}
+	 	Singleton(const Singleton&) {}
+	 	Singleton& operator=(const Singleton&) {}
+	};
+	// 继承 Singleton
+	// g++ Singleton.cpp -o singleton -std=c++11
+	```
+	注意：静态局部变量 懒汉模式 -- 系统自动释放    C++11 static 自带线程安全
+
+	**注意：** 无法继承，因为子类无法继承父类的构造函数
+
+	可以通过 `friend` 关键字获取 `private`，但是扩展性不好，可以改为 `protected` 继承就方便了。
+
+由此，基本单例模式的版本 5 是我所知最好用最好理解的写法，那么我们也可以利用版本 5 写出模板方式的模板 6
+- 模板 6
+
+	```cpp
+	template<typename T>
+	class Singleton {
+	public:
+	 	static T& GetInstance() {
+	 	static T instance; // 这⾥要初始化DesignPattern，
+	 	// 需要调⽤DesignPattern 构造函数，同时会调⽤⽗类的构造函数。
+	 	return instance;
+	 	}
+	 	virtual ~Singleton() {}
+	 	Singleton(const Singleton&) {}
+	 	Singleton& operator =(const Singleton&) {}
+	protected:
+	 	Singleton() {} // protected修饰构造函数，才能让别⼈继承
+	};
+	class DesignPattern : public Singleton<DesignPattern> {
+	 	friend class Singleton<DesignPattern>; // friend 能让 Singleton<T> 访
+		// 问到 DesignPattern构造函数
+	private:
+	 	DesignPattern(){}
+	 	DesignPattern(const DesignPattern&) {}
+	 	DesignPattern& operator=(const DesignPattern&) {}
+	}
+	```
+## 结构图
+![在这里插入图片描述](https://img-blog.csdnimg.cn/20210124214155728.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+
+接下来就是简单一些的笔记记录了
+# 策略模式
+- 定义
+	定义⼀系列算法，把它们⼀个个封装起来，并且使它们可互相替换。该模式使得算法可独⽴于使⽤它的客户程序⽽变化。 ——《设计模式》 GoF
+
+- 代码
+- 要点
+	- 策略模式提供了⼀系列可重⽤的算法，从⽽可以使得类型在运⾏时⽅便地根据需要在各个算法之间进⾏切换；
+	- 策略模式消除了条件判断语句；就是在解耦合；
+	- 充分体现了开闭原则；单⼀职责；
+- 本质
+	- 分离算法，选择实现
+- 结构图
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/20210124214415290.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+
+# 责任链模式
+- 定义
+	使多个对象都有机会处理请求，从⽽避免请求的发送者和接收者之间的耦合关系。将这些对象连成⼀条链，并沿着这条链传递请求，直到有⼀个对象处理它为⽌。 ——《设计模式》GoF
+- 代码
+	- nginx 阶段处理
+		```cpp
+		// 严格意义说是功能链
+		// ngx_http_init_phase_handlers 初始化责任链 cmcf->phase_engine.handlers
+		// ngx_http_core_run_phases 调⽤责任链
+		```
+
+- 要点
+	- 解耦请求⽅和处理⽅，请求⽅不知道请求是如何被处理，处理⽅的组成是由相互独⽴的⼦处理构成，⼦处理流程通过链表的⽅式连接，⼦处理请求可以按任意顺序组合；
+	- 责任链请求强调请求最终由⼀个⼦处理流程处理；通过了各个⼦处理条件判断；
+	- 责任链扩展就是功能链，功能链强调的是，⼀个请求依次经由功能链中的⼦处理流程处理；
+	- 充分体现了单⼀职责原则；将职责以及职责顺序运⾏进⾏抽象，那么职责变化可以任意扩展，同时职责顺序也可以任意扩展；
+
+- 本质
+	
+- 分离职责，动态组合
+	
+- 结构图
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/20210124214617363.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+# 装饰器模式
+- 定义
+	动态地给⼀个对象增加⼀些额外的职责。就增加功能⽽⾔，装饰器模式⽐⽣成⼦类更为灵活。 ——《设计模式》GoF
+
+- 背景
+	普通员⼯有销售奖⾦，累计奖⾦，部⻔经理除此之外还有团队奖⾦；后⾯可能会添加环⽐增⻓奖⾦，同时可能针对不同的职位产⽣不同的奖⾦组合；
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/20210124214718656.png)
+- 代码
+- 要点
+	- 通过采⽤组合⽽⾮继承的⼿法， 装饰器模式实现了在运⾏时动态扩展对象功能的能⼒，⽽且可以根据需要扩展多个功能。 避免了使⽤继承带来的“灵活性差”和“多⼦类衍⽣问题”。
+	- 不是解决“多⼦类衍⽣的多继承”问题，⽽是解决“⽗类在==多个⽅向上的扩展功能==”问题；
+	- 装饰器模式把⼀系列复杂的功能分散到每个装饰器当中，⼀般⼀个装饰器只实现⼀个功能，实现复⽤装饰器的功能；
+- 本质
+	- 动态组合
+- 结构图
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/20210124214818878.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+# 模板方法
+- 定义
+	定义⼀个操作中的算法的⻣架 ，⽽将⼀些步骤延迟到⼦类中。 Template Method使得⼦类可以不改变⼀个算法的结构即可重定义该算法的某些特定步骤。 ——《 设计模式》 GoF
+- 背景
+	某个品牌动物园，有⼀套固定的表演流程，但是其中有若⼲个表演⼦流程受欢迎程度⽐较低，希望将这⼏个表演流程创新，以尝试迭代更新表演流程；
+- 代码
+- 要点
+	- 非常常用的设计模式，子类可以复写父类的子流程，使父类的大流程更丰富；(注意使用纯虚函数需要注意的点，比如，虚析构函数，子类必须复写，纯虚函数不能实例化，纯虚类里的非纯虚函数可以有实现，纯虚函数不能实现)
+	- 反向控制流程的典型应用
+	- 父类 `protected` 保护子类需要复写的子流程；这样子类的子流程只能父类来调用
+	- 充分体现了依赖倒置原则
+- 本质
+	- 通过固定算法骨架来约束子类行为
+- 结构图
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/20210124215230500.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+# 观察者模式
+- 定义
+	定义对象间的⼀种⼀对多（变化）的依赖关系，以便当⼀个对象(Subject)的状态发⽣改变时，所有依赖于它的对象都得到通知并⾃动更新。 ——《 设计模式》 GoF
+- 代码
+- 要点
+	- 观察者模式使得我们可以独立地改变目标与观察者，从而使二者之间的关系松耦合
+	- 观察者⾃⼰决定是否订阅通知，⽬标对象并不关注谁订阅了；
+	- 观察者不要依赖通知顺序，⽬标对象也不知道通知顺序；
+	- 常使⽤在基于事件的ui框架中，也是MVC的组成部分；
+	- 常使⽤在分布式系统中，actor 框架中；
+- 本质
+	- 触发联动
+- 结构图
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/20210124215411927.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+# 工厂模式
+- 定义
+	定义⼀个⽤于创建对象的接⼝，让⼦类决定实例化哪⼀个类。Factory Method使得⼀个类的实例化
+延迟到⼦类。 ——《设计模式》GoF
+- 本质
+	
+	- 延迟到子类来选择实现
+- 代码
+- 要点
+	- 解决 **创建过程比较复杂**， 希望对外隐藏这些细节；
+		- 比如连接池，线程池
+		- 隐藏对象真实模型 
+			
+			
+			```cpp
+			class A : public base
+			class A_v1 : public base
+			```
+		- 对象创建会有很多参数来决定如何创建
+		- 创建对象有复杂的依赖关系
+- 结构图
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/20210124215533985.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+# 抽象工厂模式
+- 定义
+	提供一个接口，让该接口负责创建一系列“相关或者相互依赖的对象”，无需指定它们具体的类。 -- 《设计模式》 GOF
+- 背景
+	实现一个拥有导出导入数据的接口，让客户选择数据的导出导入方式
+- 代码
+- 要点
+- 本质
+- 结构图
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/20210126211853888.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+
+
+# 适配器模式
+- 定义
+	将一个类的接口转换成客户希望的另一个接口。 Adapter 模式使得原本由于接口不兼容而不能一起工作的哪些类一起工作。 -- 《设计模式》 GOF
+- 背景
+	日志系统，原来是通过写磁盘的方式进行存储，后来因为i查询不变，需要额外添加王数据库写日志的功能 (写文件和数据库并存)
+- 代码
+- 要点
+	- 原来的接口是稳定的，新的外来的需求是变化的，那么可以通过继承原来的接口，让原来的接口继续保持稳定，在子类通过组合的方式来扩展功能
+- 本质
+	- 转换匹配，复用功能；
+- 结构图
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/202101262118441.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
+
+
+# 代理模式 (有点没看懂这个模式)
+- 定义
+	为其他对象提供一种代理以控制对这对象的访问。 -- 《设计模式》 GoF
+- 背景
+	在有些系统中，为了某些对象的纯粹性，只进⾏了功能相关封装（稳定点），后期添加了其他功能
+需要对该对象进⾏额外操作（变化点），为了隔离变化点（也就是不直接在稳定点进⾏修改，这样
+会让稳定点也变得不稳定），可以抽象⼀层代理层；
+- 代码
+- 要点
+	- 远程代理（隐藏⼀个对象存在不同的地址空间的事实），虚代理（延迟加载 lazyload ），保护代理（在
+代理前后做额外操作，权限管理，引⽤计数等）；
+	- 在分布式系统中， actor 模型 ( skynet ) 等常用的设计模式
+- 本质
+	- 控制对象访问
+- 结构图
+	![在这里插入图片描述](https://img-blog.csdnimg.cn/20210126211833513.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3FxXzM5Mjc0NTAx,size_16,color_FFFFFF,t_70)
